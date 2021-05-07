@@ -904,29 +904,29 @@ NavierStokes::scalar_advection (Real dt,
         delete divu_fp;
 
 
-        if (do_reflux)
-        {
-            for (int d = 0; d < AMREX_SPACEDIM; ++d)
-                MultiFab::Copy(fluxes[d], cfluxes[d], 0, 0, num_scalars, 0 );
-	}
+        // if (do_reflux)
+        // {
+        //     for (int d = 0; d < AMREX_SPACEDIM; ++d)
+        //         MultiFab::Copy(fluxes[d], cfluxes[d], 0, 0, num_scalars, 0 );
+	// }
 
     } // FillPathIterator
 
 
 
-    if (do_reflux)
-    {
-        if (level > 0 )
-        {
-            for (int d = 0; d < BL_SPACEDIM; d++)
-                advflux_reg->FineAdd(fluxes[d],d,0,fscalar,num_scalars,dt);
-        }
-        if (level < parent->finestLevel())
-        {
-            for (int i = 0; i < BL_SPACEDIM; i++)
-                getAdvFluxReg(level+1).CrseInit(fluxes[i],i,0,fscalar,num_scalars,-dt);
-        }
-    }
+    // if (do_reflux)
+    // {
+    //     if (level > 0 )
+    //     {
+    //         for (int d = 0; d < BL_SPACEDIM; d++)
+    //             advflux_reg->FineAdd(fluxes[d],d,0,fscalar,num_scalars,dt);
+    //     }
+    //     if (level < parent->finestLevel())
+    //     {
+    //         for (int i = 0; i < BL_SPACEDIM; i++)
+    //             getAdvFluxReg(level+1).CrseInit(fluxes[i],i,0,fscalar,num_scalars,-dt);
+    //     }
+    // }
 }
 
 //
