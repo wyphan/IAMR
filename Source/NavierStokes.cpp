@@ -888,16 +888,18 @@ NavierStokes::scalar_advection (Real dt,
 
 
 // #else
-            Godunov::ComputeAofs(*aofs, fscalar, num_scalars,
-                                 Smf, 0,
-                                 AMREX_D_DECL( u_mac[0], u_mac[1], u_mac[2] ),
-                                 AMREX_D_DECL( edgestate[0], edgestate[1], edgestate[2] ), 0, false,
-                                 AMREX_D_DECL( cfluxes[0], cfluxes[1], cfluxes[2] ), 0,
-                                 forcing_term, 0, *divu_fp, m_bcrec_scalars_d.dataPtr(),
-                                 geom, iconserv, dt, godunov_use_ppm, godunov_use_forces_in_trans, false );
+            // Godunov::ComputeAofs(*aofs, fscalar, num_scalars,
+            //                      Smf, 0,
+            //                      AMREX_D_DECL( u_mac[0], u_mac[1], u_mac[2] ),
+            //                      AMREX_D_DECL( edgestate[0], edgestate[1], edgestate[2] ), 0, false,
+            //                      AMREX_D_DECL( cfluxes[0], cfluxes[1], cfluxes[2] ), 0,
+            //                      forcing_term, 0, *divu_fp, m_bcrec_scalars_d.dataPtr(),
+            //                      geom, iconserv, dt, godunov_use_ppm, godunov_use_forces_in_trans, false );
 // #endif
+            ComputeAofs(fscalar, num_scalars, Smf, 0, forcing_term, *divu_fp, false, dt);
 
         }
+
 
         delete divu_fp;
 
