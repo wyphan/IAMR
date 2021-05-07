@@ -725,38 +725,38 @@ NavierStokes::scalar_advection (Real dt,
     const int   num_scalars    = lscalar - fscalar + 1;
     const Real  prev_time      = state[State_Type].prevTime();
 
-    // MultiFab fluxes[AMREX_SPACEDIM];
-    // MultiFab cfluxes[AMREX_SPACEDIM];
-    // MultiFab edgestate[AMREX_SPACEDIM];
+    MultiFab fluxes[AMREX_SPACEDIM];
+    MultiFab cfluxes[AMREX_SPACEDIM];
+    MultiFab edgestate[AMREX_SPACEDIM];
 
-//     //FIMXE
-//     // At most could have nghost= nghost_state()-2 due to needs of slopes routines
-//     // Non-EB does not need any ghost cells (verified in development).
-//     // Not sure that EB really needs any ghost cells on fluxes either (however,
-//     // nghost =0 in development causes regression test to fail).
-//     // Note that classes derived from NS may need fluxes for scalar advection (not velocity advection)
-//     // They may have their own scalar advection routine and may not use NS::scalar_advection()
-// #ifdef AMREX_USE_EB
-//     int nghost = nghost_state()-2;
-// #else
-//     int nghost = 0;
-// #endif
-//     for (int i = 0; i < AMREX_SPACEDIM; ++i)
-//     {
-//         const BoxArray& ba = getEdgeBoxArray(i);
-//         cfluxes[i].define(ba, dmap, num_scalars, nghost, MFInfo(), Factory());
-//         edgestate[i].define(ba, dmap, num_scalars, nghost, MFInfo(), Factory());
+    //FIMXE
+    // At most could have nghost= nghost_state()-2 due to needs of slopes routines
+    // Non-EB does not need any ghost cells (verified in development).
+    // Not sure that EB really needs any ghost cells on fluxes either (however,
+    // nghost =0 in development causes regression test to fail).
+    // Note that classes derived from NS may need fluxes for scalar advection (not velocity advection)
+    // They may have their own scalar advection routine and may not use NS::scalar_advection()
+#ifdef AMREX_USE_EB
+    int nghost = nghost_state()-2;
+#else
+    int nghost = 0;
+#endif
+    for (int i = 0; i < AMREX_SPACEDIM; ++i)
+    {
+        const BoxArray& ba = getEdgeBoxArray(i);
+        cfluxes[i].define(ba, dmap, num_scalars, nghost, MFInfo(), Factory());
+        edgestate[i].define(ba, dmap, num_scalars, nghost, MFInfo(), Factory());
 
-//         if (do_reflux)
-//             fluxes[i].define(ba, dmap, num_scalars, 0, MFInfo(), Factory());
-//     }
+        if (do_reflux)
+            fluxes[i].define(ba, dmap, num_scalars, 0, MFInfo(), Factory());
+    }
 
 
-//     // Advection type
-//     amrex::Gpu::DeviceVector<int> iconserv;
-//     iconserv.resize(num_scalars, 0);
-//     for (int comp = 0; comp < num_scalars; ++comp)
-//         iconserv[comp] = (advectionType[fscalar+comp] == Conservative) ? 1 : 0;
+    // Advection type
+    amrex::Gpu::DeviceVector<int> iconserv;
+    iconserv.resize(num_scalars, 0);
+    for (int comp = 0; comp < num_scalars; ++comp)
+        iconserv[comp] = (advectionType[fscalar+comp] == Conservative) ? 1 : 0;
 
     // divu
     // Find if there are any non-conservative scalars
@@ -773,11 +773,9 @@ NavierStokes::scalar_advection (Real dt,
     //
     // Start FillPatchIterator block
     //
-    MultiFab forcing_term( grids, dmap, num_scalars, nghost_force(), MFInfo(),Factory());
-    forcing_term.setVal(0.0);
-
+    MultiFab visc_terms(grids,dmap,num_scalars,nghost_force(),MFInfo(),Factory());
     {
-        FillPatchIterator S_fpi(*this,forcing_term,nghost_state(),prev_time,State_Type,fscalar,num_scalars);
+        FillPatchIterator S_fpi(*this,visc_terms,nghost_state(),prev_time,State_Type,fscalar,num_scalars);
         MultiFab& Smf=S_fpi.get_mf();
 
         // Floor small values of states to be extrapolated
@@ -794,22 +792,22 @@ NavierStokes::scalar_advection (Real dt,
             // MultiFab::Saxpy(*divu_fp, 0.5*dt, *dsdt, 0, 0, 1, nghost_force());
             // delete dsdt;
 
-// #ifdef AMREX_USE_EB
-//             EBMOL::ComputeAofs(*aofs, fscalar, num_scalars, Smf, 0,
-//                                D_DECL(u_mac[0],u_mac[1],u_mac[2]),
-//                                D_DECL(edgestate[0],edgestate[1],edgestate[2]), 0, false,
-//                                D_DECL(cfluxes[0],cfluxes[1],cfluxes[2]), 0,
-//                                *divu_fp,
-//                                m_bcrec_scalars, m_bcrec_scalars_d.dataPtr(), iconserv,
-//                                geom, dt, false, redistribution_type );
-// #else
-//             MOL::ComputeAofs(*aofs, fscalar, num_scalars, Smf, 0,
-//                              D_DECL(u_mac[0],u_mac[1],u_mac[2]),
-//                              D_DECL(edgestate[0],edgestate[1],edgestate[2]), 0, false,
-//                              D_DECL(cfluxes[0],cfluxes[1],cfluxes[2]), 0,
-//                              m_bcrec_scalars, m_bcrec_scalars_d.dataPtr(), iconserv,
-//                              geom, false );
-// #endif
+#ifdef AMREX_USE_EB
+            EBMOL::ComputeAofs(*aofs, fscalar, num_scalars, Smf, 0,
+                               D_DECL(u_mac[0],u_mac[1],u_mac[2]),
+                               D_DECL(edgestate[0],edgestate[1],edgestate[2]), 0, false,
+                               D_DECL(cfluxes[0],cfluxes[1],cfluxes[2]), 0,
+                               *divu_fp,
+                               m_bcrec_scalars, m_bcrec_scalars_d.dataPtr(), iconserv,
+                               geom, dt, false, redistribution_type );
+#else
+            MOL::ComputeAofs(*aofs, fscalar, num_scalars, Smf, 0,
+                             D_DECL(u_mac[0],u_mac[1],u_mac[2]),
+                             D_DECL(edgestate[0],edgestate[1],edgestate[2]), 0, false,
+                             D_DECL(cfluxes[0],cfluxes[1],cfluxes[2]), 0,
+                             m_bcrec_scalars, m_bcrec_scalars_d.dataPtr(), iconserv,
+                             geom, false );
+#endif
 
         }
         else
@@ -817,7 +815,7 @@ NavierStokes::scalar_advection (Real dt,
             //////////////////////////////////////////////////////////////////////////////
             //  GODUNOV ALGORITHM
             //////////////////////////////////////////////////////////////////////////////
-            FillPatchIterator U_fpi(*this,forcing_term,nghost_state(),prev_time,State_Type,Xvel,BL_SPACEDIM);
+            FillPatchIterator U_fpi(*this,visc_terms,nghost_state(),prev_time,State_Type,Xvel,BL_SPACEDIM);
             const MultiFab& Umf=U_fpi.get_mf();
 
             MultiFab* dsdt    = getDsdt(nghost_force(),prev_time);
@@ -825,13 +823,12 @@ NavierStokes::scalar_advection (Real dt,
             delete dsdt;
 
             // Compute viscous term
-            MultiFab visc_terms(grids,dmap,num_scalars,nghost_force(),MFInfo(),Factory());
             if (be_cn_theta != 1.0)
                 getViscTerms(visc_terms,fscalar,num_scalars,prev_time);
             else
                 visc_terms.setVal(0.0,1);
 
-            // MultiFab forcing_term( grids, dmap, num_scalars, nghost_force());
+            MultiFab forcing_term( grids, dmap, num_scalars, nghost_force());
 
 #ifdef _OPENMP
 #pragma omp parallel if (Gpu::notInLaunchRegion())
@@ -879,56 +876,55 @@ NavierStokes::scalar_advection (Real dt,
             }
 
 
-// #ifdef AMREX_USE_EB
-//             EBGodunov::ComputeAofs(*aofs, fscalar, num_scalars,
-//                                    Smf, 0,
-//                                    AMREX_D_DECL(u_mac[0],u_mac[1],u_mac[2]),
-//                                    AMREX_D_DECL(edgestate[0],edgestate[1],edgestate[2]), 0, false,
-//                                    AMREX_D_DECL(cfluxes[0],cfluxes[1],cfluxes[2]), 0,
-//                                    forcing_term, 0, *divu_fp,
-//                                    m_bcrec_scalars, m_bcrec_scalars_d.dataPtr(),
-//                                    geom, iconserv, dt, true, redistribution_type );
+#ifdef AMREX_USE_EB
+            EBGodunov::ComputeAofs(*aofs, fscalar, num_scalars,
+                                   Smf, 0,
+                                   AMREX_D_DECL(u_mac[0],u_mac[1],u_mac[2]),
+                                   AMREX_D_DECL(edgestate[0],edgestate[1],edgestate[2]), 0, false,
+                                   AMREX_D_DECL(cfluxes[0],cfluxes[1],cfluxes[2]), 0,
+                                   forcing_term, 0, *divu_fp,
+                                   m_bcrec_scalars, m_bcrec_scalars_d.dataPtr(),
+                                   geom, iconserv, dt, true, redistribution_type );
 
 
-// #else
-//             Godunov::ComputeAofs(*aofs, fscalar, num_scalars,
-//                                  Smf, 0,
-//                                  AMREX_D_DECL( u_mac[0], u_mac[1], u_mac[2] ),
-//                                  AMREX_D_DECL( edgestate[0], edgestate[1], edgestate[2] ), 0, false,
-//                                  AMREX_D_DECL( cfluxes[0], cfluxes[1], cfluxes[2] ), 0,
-//                                  forcing_term, 0, *divu_fp, m_bcrec_scalars_d.dataPtr(),
-//                                  geom, iconserv, dt, godunov_use_ppm, godunov_use_forces_in_trans, false );
-// #endif
+#else
+            Godunov::ComputeAofs(*aofs, fscalar, num_scalars,
+                                 Smf, 0,
+                                 AMREX_D_DECL( u_mac[0], u_mac[1], u_mac[2] ),
+                                 AMREX_D_DECL( edgestate[0], edgestate[1], edgestate[2] ), 0, false,
+                                 AMREX_D_DECL( cfluxes[0], cfluxes[1], cfluxes[2] ), 0,
+                                 forcing_term, 0, *divu_fp, m_bcrec_scalars_d.dataPtr(),
+                                 geom, iconserv, dt, godunov_use_ppm, godunov_use_forces_in_trans, false );
+#endif
 
         }
 
         delete divu_fp;
 
 
-        ComputeAofs(fscalar, num_scalars, Smf, 0, forcing_term, *divu_fp, false, dt);
-        // if (do_reflux)
-        // {
-        //     for (int d = 0; d < AMREX_SPACEDIM; ++d)
-        //         MultiFab::Copy(fluxes[d], cfluxes[d], 0, 0, num_scalars, 0 );
-	// }
+        if (do_reflux)
+        {
+            for (int d = 0; d < AMREX_SPACEDIM; ++d)
+                MultiFab::Copy(fluxes[d], cfluxes[d], 0, 0, num_scalars, 0 );
+	}
 
     } // FillPathIterator
 
 
 
-    // if (do_reflux)
-    // {
-    //     if (level > 0 )
-    //     {
-    //         for (int d = 0; d < BL_SPACEDIM; d++)
-    //             advflux_reg->FineAdd(fluxes[d],d,0,fscalar,num_scalars,dt);
-    //     }
-    //     if (level < parent->finestLevel())
-    //     {
-    //         for (int i = 0; i < BL_SPACEDIM; i++)
-    //             getAdvFluxReg(level+1).CrseInit(fluxes[i],i,0,fscalar,num_scalars,-dt);
-    //     }
-    // }
+    if (do_reflux)
+    {
+        if (level > 0 )
+        {
+            for (int d = 0; d < BL_SPACEDIM; d++)
+                advflux_reg->FineAdd(fluxes[d],d,0,fscalar,num_scalars,dt);
+        }
+        if (level < parent->finestLevel())
+        {
+            for (int i = 0; i < BL_SPACEDIM; i++)
+                getAdvFluxReg(level+1).CrseInit(fluxes[i],i,0,fscalar,num_scalars,-dt);
+        }
+    }
 }
 
 //
