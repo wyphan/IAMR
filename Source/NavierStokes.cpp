@@ -770,6 +770,12 @@ NavierStokes::scalar_advection (Real dt,
     int ng_div = nonconserv ? 2 : 0;
     MultiFab* divu_fp = getDivCond(ng_div,prev_time);
 
+    // Should I add dsdt if divu_fp is used to build
+    // convective form in u*grad(Q) = div(uQ) - Q*div(u) ??
+    MultiFab* dsdt    = getDsdt(nghost_force(),prev_time);
+    MultiFab::Saxpy(*divu_fp, 0.5*dt, *dsdt, 0, 0, 1, nghost_force());
+    delete dsdt;
+
     //
     // Start FillPatchIterator block
     //
@@ -820,9 +826,7 @@ NavierStokes::scalar_advection (Real dt,
             FillPatchIterator U_fpi(*this,forcing_term,nghost_state(),prev_time,State_Type,Xvel,BL_SPACEDIM);
             const MultiFab& Umf=U_fpi.get_mf();
 
-            MultiFab* dsdt    = getDsdt(nghost_force(),prev_time);
-            MultiFab::Saxpy(*divu_fp, 0.5*dt, *dsdt, 0, 0, 1, nghost_force());
-            delete dsdt;
+
 
             // Compute viscous term
             MultiFab visc_terms(grids,dmap,num_scalars,nghost_force(),MFInfo(),Factory());
