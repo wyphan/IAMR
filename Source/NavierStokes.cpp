@@ -902,10 +902,12 @@ NavierStokes::scalar_advection (Real dt,
 
         }
 
+
+        ComputeAofs(fscalar, num_scalars, Smf, 0, forcing_term, *divu_fp, false, dt);
+
         delete divu_fp;
 
 
-        ComputeAofs(fscalar, num_scalars, Smf, 0, forcing_term, *divu_fp, false, dt);
         // if (do_reflux)
         // {
         //     for (int d = 0; d < AMREX_SPACEDIM; ++d)
