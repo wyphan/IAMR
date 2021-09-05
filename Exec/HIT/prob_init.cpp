@@ -5,12 +5,6 @@ using namespace amrex;
 
 int NavierStokes::probtype = -1;
 
-// For now, define pi here, but maybe later make iamr_constants.H
-namespace {
-  constexpr Real Pi    = 3.141592653589793238462643383279502884197;
-  constexpr Real TwoPi = 2.0 * 3.141592653589793238462643383279502884197;
-}
-
 //
 // Initialize state and pressure with problem-specific data
 //

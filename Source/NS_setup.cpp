@@ -494,4 +494,9 @@ NavierStokes::variableSetUp ()
     // **************  DEFINE ERROR ESTIMATION QUANTITIES  *************
     //
     error_setup();
+
+#ifdef USE_TURBULENT_FORCING
+    TurbulentForcing::read_turbulent_forcing_params();
+#endif
+
 }

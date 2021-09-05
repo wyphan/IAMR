@@ -6,6 +6,10 @@
 #include <AMReX_LevelBld.H>
 #include "Utilities.H"
 
+#ifdef USE_TURBULENT_FORCING
+#include <TurbulentForcing_params.H>
+#endif
+
 class NSBld
     :
     public amrex::LevelBld
