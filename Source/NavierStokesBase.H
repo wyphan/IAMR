@@ -596,8 +596,6 @@ public:
     const amrex::MultiFab* volfrac;
     //fixme - are these ever used?
     const amrex::MultiCutFab* bndrycent;
-    amrex::FabArray<amrex::BaseFab<int>> ebmask;
-
     std::array<const amrex::MultiCutFab*, AMREX_SPACEDIM> areafrac;
     std::array<const amrex::MultiCutFab*, AMREX_SPACEDIM> facecent;
 
