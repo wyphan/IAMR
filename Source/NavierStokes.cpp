@@ -351,16 +351,6 @@ NavierStokes::initData ()
       Save_new.setVal(0.);
     }
 
-#ifdef AMREX_USE_EB
-    //
-    // Set EB covered cells to some typical value for that field
-    // FIXME -- Not sure IAMR really needs this...
-    {
-      MultiFab&   S_new    = get_new_data(State_Type);
-      set_body_state(S_new);
-    }
-#endif
-
 #ifdef BL_USE_VELOCITY
     {
       //
@@ -838,9 +828,7 @@ NavierStokes::scalar_update (Real dt,
       scalar_diffusion_update(dt, first_scalar, last_scalar);
 
     MultiFab&  S_new     = get_new_data(State_Type);
-//#ifdef AMREX_USE_EB
-//  set_body_state(S_new);
-//#endif
+
     for (int sigma = first_scalar; sigma <= last_scalar; sigma++)
     {
        if (S_new.contains_nan(sigma,1,0))

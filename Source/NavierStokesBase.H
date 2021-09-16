@@ -572,18 +572,7 @@ public:
         return static_cast<amrex::EBFArrayBoxFactory const&>(*m_factory);
     }
 
-    void init_eb (const amrex::Geometry& level_geom, const amrex::BoxArray& ba, const amrex::DistributionMapping& dm);
-
-    void initialize_eb2_structs();
-    void define_body_state();
-
     void InitialRedistribution ();
-
-    static bool ebInitialized();
-    static bool eb_initialized;
-    static bool body_state_set;
-    static bool      no_eb_in_domain;
-    static std::vector<amrex::Real> body_state;
 
 #endif
 
@@ -603,8 +592,6 @@ public:
     amrex::MultiFab area[BL_SPACEDIM];
 
 #ifdef AMREX_USE_EB
-
-    void set_body_state(amrex::MultiFab& S);
 
     const amrex::MultiFab* volfrac;
     //fixme - are these ever used?

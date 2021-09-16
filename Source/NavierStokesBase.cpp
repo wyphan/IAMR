@@ -148,10 +148,6 @@ bool NavierStokesBase::godunov_use_forces_in_trans = false;
 
 #ifdef AMREX_USE_EB
 int          NavierStokesBase::refine_cutcells     = 1;
-bool         NavierStokesBase::eb_initialized      = false;
-bool         NavierStokesBase::no_eb_in_domain     = true;
-bool         NavierStokesBase::body_state_set      = false;
-std::vector<Real> NavierStokesBase::body_state;
 std::string  NavierStokesBase::redistribution_type = "StateRedist";
 #endif
 
@@ -285,10 +281,6 @@ NavierStokesBase::NavierStokesBase (Amr&            papa,
     //
     buildMetrics();
 
-
-#ifdef AMREX_USE_EB
-    init_eb(level_geom, bl, dm);
-#endif
 
     //FIXME --- this fn is really similar to restart()... work on that later
 
@@ -2516,9 +2508,6 @@ NavierStokesBase::restart (Amr&          papa,
     mac_projector->install_level(level,this);
 
     const BoxArray& P_grids = state[Press_Type].boxArray();
-#ifdef AMREX_USE_EB
-    init_eb(parent->Geom(level), grids, dmap);
-#endif
 
     //
     // Alloc space for density and temporary pressure variables.
