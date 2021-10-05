@@ -332,7 +332,8 @@ public:
         PC_T,
         CellCons_T,
         CellConsLin_T,
-        CellConsProt_T
+        CellConsProt_T,
+        CellQuad_T
     };
     //
     void SyncInterp (amrex::MultiFab&      CrseSync,
@@ -346,7 +347,7 @@ public:
                      int            increment,
                      amrex::Real           dt_clev,
                      int**          bc_orig_qty,
-                     SyncInterpType which_interp = CellCons_T,
+                     SyncInterpType which_interp = CellQuad_T,
                      int            state_comp   = -1);
     //
     // Bilinear interpolate nodal pressures from coarse to fine.

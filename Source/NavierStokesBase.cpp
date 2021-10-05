@@ -2951,6 +2951,7 @@ NavierStokesBase::SyncInterp (MultiFab&      CrseSync,
        case CellCons_T:     interpolater = &cell_cons_interp;    break;
        case CellConsLin_T:  interpolater = &lincc_interp;        break;
        case CellConsProt_T: interpolater = &protected_interp;    break;
+       case CellQuad_T:     interpolater = &quadratic_interp;    break;
        default:
        amrex::Abort("NavierStokesBase::SyncInterp(): how did this happen \n");
     }

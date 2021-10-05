@@ -35,7 +35,7 @@ amr.n_cell 		= 64 128 #128 256 #256 512 #32 64 #16 32 #
 #*******************************************************************************
 
 # Maximum level (defaults to 0 for single level calculation)
-amr.max_level		= 0 # maximum number of levels of refinement
+amr.max_level		= 1 # maximum number of levels of refinement
 
 #*******************************************************************************
 
@@ -85,7 +85,7 @@ ns.vel_visc_coef        = 0. #001
 #*******************************************************************************
 
 # Diffusion coefficient for first scalar
-ns.scal_diff_coefs      = 0.001
+ns.scal_diff_coefs      = 0. #001
 
 #*******************************************************************************
 
